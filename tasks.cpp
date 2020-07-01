@@ -340,12 +340,13 @@ void SearchTask::Run()
 				data->BlockReference(m_candidate);
 				skipLooting = true;
 			}
-			else if (LootingDependsOnValueWeight(lootingType, objType) && TESFormHelper(m_candidate->GetBaseObject()).ValueWeightTooLowToLoot())
+			else if (LootingDependsOnValueWeight(lootingType, objType) && TESFormHelper(m_candidate->GetBaseObject()).ValueWeightTooLowToLoot(m_candidate->GetGoldValue()))
 			{
 				DBG_VMESSAGE("block - v/w excludes harvest for 0x%08x", m_candidate->GetBaseObject()->formID);
 				data->BlockForm(m_candidate->GetBaseObject());
 				skipLooting = true;
 			}
+			DBG_VMESSAGE("%s/0x%08x value:%d", m_candidate->GetBaseObject()->GetName(), m_candidate->GetBaseObject()->formID, m_candidate->GetGoldValue());
 		}
 
 		if (skipLooting)
@@ -531,6 +532,28 @@ void SearchTask::Run()
 				DBG_VMESSAGE("block looting of armor from dead body %s/0x%08x", target->GetName(), target->GetFormID());
 				continue;
 			}
+			if (objType == ObjectType::weapon || objType == ObjectType::armor || objType == ObjectType::jewelry) {
+				bool hasEnchantment = GetEnchantmentFromExtraLists(targetItemInfo.GetExtraDataLists()) != nullptr;
+				if (hasEnchantment) {
+					DBG_VMESSAGE("%s/0x%08x has player-created enchantment", targetItemInfo.BoundObject()->GetName(), targetItemInfo.BoundObject()->formID);
+					switch (objType)
+					{
+					case ObjectType::weapon:
+						objType = ObjectType::enchantedWeapon;
+						break;
+					case ObjectType::armor:
+						objType = ObjectType::enchantedArmor;
+						break;
+					case ObjectType::jewelry:
+						objType = ObjectType::enchantedJewelry;
+						break;
+					default:
+						break;
+					}
+				}
+			}
+			SInt32 priceOverride = targetItemInfo.GetGoldValue();
+			DBG_VMESSAGE("%s/0x%08x value:%d", targetItemInfo.BoundObject()->GetName(), targetItemInfo.BoundObject()->formID, priceOverride);
 
 			std::string typeName = GetObjectTypeName(objType);
 			LootingType lootingType = LootingTypeFromIniSetting(m_ini->GetSetting(INIFile::PrimaryType::harvest, INIFile::SecondaryType::itemObjects, typeName.c_str()));
@@ -553,7 +576,7 @@ void SearchTask::Run()
 				data->BlockForm(target);
 				continue;
 			}
-			else if (LootingDependsOnValueWeight(lootingType, objType) && TESFormHelper(target).ValueWeightTooLowToLoot())
+			else if (LootingDependsOnValueWeight(lootingType, objType) && TESFormHelper(target).ValueWeightTooLowToLoot(priceOverride))
 			{
 				DBG_VMESSAGE("block - v/w excludes for 0x%08x", target->formID);
 				data->BlockForm(target);
