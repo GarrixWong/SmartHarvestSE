@@ -111,13 +111,10 @@ double TESFormHelper::CalculateWorth() const
 	else
 	{
 		double result(0.);
-		if (m_form->formType == RE::FormType::Weapon)
+		if (m_form->formType == RE::FormType::Weapon || 
+				m_form->formType == RE::FormType::Armor)
 		{
-			result = TESObjectWEAPHelper(m_form->As<RE::TESObjectWEAP>()).GetGoldValue();
-		}
-		else if (m_form->formType == RE::FormType::Armor)
-		{
-			result = TESObjectARMOHelper(m_form->As<RE::TESObjectARMO>()).GetGoldValue();
+			result = m_form->GetGoldValue();
 		}
 		else if (m_form->formType == RE::FormType::Enchantment ||
 			m_form->formType == RE::FormType::Spell ||
