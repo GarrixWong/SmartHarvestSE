@@ -321,7 +321,18 @@ ObjectType GetBaseFormObjectType(const RE::TESForm* baseForm, bool ignoreWhiteLi
 		if (!weapon || !weapon->GetPlayable())
 			return ObjectType::unknown;
 
-		return (weapon->formEnchanting) ? ObjectType::enchantedWeapon : ObjectType::weapon;
+		auto enchantment = weapon->formEnchanting;
+
+		if (!enchantment) {
+			const RE::TESObjectREFR* objRef = baseForm->As<RE::TESObjectREFR>();
+			if (objRef)
+			{
+				ExtraDataListHelper exListHelper(&objRef->extraList);
+				enchantment = exListHelper.GetEnchantment();
+			}
+		}
+
+		return (enchantment) ? ObjectType::enchantedWeapon : ObjectType::weapon;
 	}
 	else if (baseForm->formType == RE::FormType::Armor)
 	{
@@ -330,7 +341,18 @@ ObjectType GetBaseFormObjectType(const RE::TESForm* baseForm, bool ignoreWhiteLi
 		if (!armor || !armor->GetPlayable())
 			return ObjectType::unknown;
 
-		return (armor->formEnchanting) ? ObjectType::enchantedArmor : ObjectType::armor;
+		auto enchantment = armor->formEnchanting;
+
+		if (!enchantment) {
+			const RE::TESObjectREFR* objRef = baseForm->As<RE::TESObjectREFR>();
+			if (objRef)
+			{
+				ExtraDataListHelper exListHelper(&objRef->extraList);
+				enchantment = exListHelper.GetEnchantment();
+			}
+		}
+
+		return (enchantment) ? ObjectType::enchantedArmor : ObjectType::armor;
 	}
 	return ObjectType::unknown;
 }
